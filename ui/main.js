@@ -421,7 +421,7 @@ async function boot() {
     invoke("open_url", { url: "https://nocheater.store" })
   );
   $("#btn-redeem-site").addEventListener("click", () =>
-    invoke("open_url", { url: "https://nocheater.store" })
+    invoke("open_url", { url: "https://sitnn.dog" })
   );
   $("#btn-discord").addEventListener("click", () =>
     invoke("open_url", { url: "https://nocheater.cc" })

@@ -34,7 +34,7 @@ npm run tauri build
 - **History** — Steam accounts. Refresh, Sign in, Remove, Export (`username----token`), Clear all.
 - **Redeem / Replacement** — sitnn.dog `{ ok }` API from Rust (not the webview).
 - **Settings** — optional Run as administrator if Steam kill fails (Access denied), Quit.
-- Top right: **Market** / **Redeem** → nocheater.store, **Discord** → nocheater.cc, **Close Steam**.
+- Top right: **Market** → nocheater.store, **Redeem** → sitnn.dog, **Discord** → nocheater.cc, **Close Steam**.
 - Steam is **not** auto-started when the loader opens — only on Import & Login / Sign in.
 - Import / Sign in write **Invisible** persona into `localconfig.vdf` before Steam launches.
 
