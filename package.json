@@ -2,7 +2,7 @@
   "name": "nocheater-nfa-loader",
   "version": "0.1.1",
   "private": true,
-  "description": "nocheater NFA Loader — public standalone edition",
+  "description": "nocheater NFA Loader - public standalone edition",
   "scripts": {
     "tauri": "tauri",
     "dev": "tauri dev",
