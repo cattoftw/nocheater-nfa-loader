@@ -110,4 +110,4 @@ Write-Host ("  Desktop installer: " + (Join-Path $desktop $setup.Name))
 Write-Host ("  Portable folder: " + $portable)
 Write-Host ("  Desktop portable: " + $desktopPortable)
 Write-Host ("  Portable zip: " + $zipPath)
-Write-Host "Standalone exe — no Node, no checker resources required at runtime."
+Write-Host "Standalone exe - no Node, no checker resources required at runtime."

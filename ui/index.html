@@ -12,7 +12,7 @@
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body autocomplete="off">
     <div class="bg" aria-hidden="true">
       <canvas id="starfield"></canvas>
       <div class="violet-wash"></div>
@@ -79,7 +79,14 @@
                 <textarea
                   id="import-token"
                   rows="2"
+                  autocomplete="off"
+                  autocapitalize="off"
+                  autocorrect="off"
                   spellcheck="false"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  data-bwignore="true"
+                  data-form-type="other"
                   placeholder="username----eyJ…"
                 ></textarea>
               </label>
@@ -100,8 +107,15 @@
                 <input
                   type="text"
                   id="account-key"
+                  name="nocheater-account-key"
                   autocomplete="off"
+                  autocapitalize="off"
+                  autocorrect="off"
                   spellcheck="false"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  data-bwignore="true"
+                  data-form-type="other"
                   placeholder="Paste your key"
                 />
               </label>
@@ -142,8 +156,15 @@
               <input
                 type="text"
                 id="redeem-key"
+                name="nocheater-redeem-key"
                 autocomplete="off"
+                autocapitalize="off"
+                autocorrect="off"
                 spellcheck="false"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                data-bwignore="true"
+                data-form-type="other"
                 placeholder="Paste your key"
               />
             </label>
@@ -165,8 +186,15 @@
               <input
                 type="text"
                 id="replacement-key"
+                name="nocheater-replacement-key"
                 autocomplete="off"
+                autocapitalize="off"
+                autocorrect="off"
                 spellcheck="false"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                data-bwignore="true"
+                data-form-type="other"
                 placeholder="Paste your key"
               />
             </label>
@@ -174,8 +202,17 @@
               <span>Reason <em>(required, max 500)</em></span>
               <textarea
                 id="replacement-reason"
+                name="nocheater-replacement-reason"
                 maxlength="500"
                 rows="3"
+                autocomplete="off"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                data-bwignore="true"
+                data-form-type="other"
                 placeholder="Why do you need a replacement?"
               ></textarea>
             </label>

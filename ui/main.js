@@ -607,22 +607,7 @@ async function boot() {
     });
   });
 
-  try {
-    const lastKey = await invoke("get_last_key");
-    if (lastKey) {
-      ["#account-key", "#redeem-key", "#replacement-key"].forEach((id) => {
-        $(id).value = lastKey;
-      });
-    }
-  } catch (_) {}
-
-  try {
-    const lastToken = await invoke("get_last_token");
-    if (lastToken && !$("#import-token").value.trim()) {
-      $("#import-token").value = lastToken;
-    }
-  } catch (_) {}
-
+  // Never restore saved keys/tokens into inputs — leave all fields empty on launch.
   await refreshAdminSettings();
 }
 
