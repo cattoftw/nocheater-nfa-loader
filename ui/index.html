@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>nocheater NFA Loader</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Outfit:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg" aria-hidden="true">
+      <canvas id="starfield"></canvas>
+      <div class="violet-wash"></div>
+      <div class="grain"></div>
+      <div class="vignette"></div>
+    </div>
+
+    <header class="titlebar" data-tauri-drag-region>
+      <div class="titlebar-brand" data-tauri-drag-region>
+        <img class="peach-mark" src="assets/peach-cat.gif" alt="" width="26" height="26" />
+        <span class="brand-name" aria-label="nocheater NFA Loader">
+          <span class="brand-word">nocheater</span>
+          <span class="brand-product">NFA Loader</span>
+        </span>
+      </div>
+      <div class="titlebar-links">
+        <button type="button" class="link-chip" id="btn-close-steam" title="Close Steam">Close Steam</button>
+        <button type="button" class="link-chip" id="btn-market" title="Market">Market</button>
+        <button type="button" class="link-chip" id="btn-redeem-site" title="Redeem">Redeem</button>
+        <button type="button" class="link-chip" id="btn-discord" title="Discord">Discord</button>
+      </div>
+      <div class="titlebar-actions">
+        <button type="button" class="win-btn" id="btn-min" title="Minimize">─</button>
+        <button type="button" class="win-btn win-close" id="btn-close" title="Quit">✕</button>
+      </div>
+    </header>
+
+    <div class="shell">
+      <aside class="sidebar">
+        <nav class="tabs" role="tablist">
+          <button type="button" class="tab active" data-tab="account" role="tab" aria-selected="true" title="Login">
+            Login
+          </button>
+          <button type="button" class="tab" data-tab="history" role="tab" aria-selected="false">
+            History
+          </button>
+          <button type="button" class="tab" data-tab="redeem" role="tab" aria-selected="false">
+            Redeem
+          </button>
+          <button type="button" class="tab" data-tab="replacement" role="tab" aria-selected="false">
+            Replacement
+          </button>
+          <button type="button" class="tab tab-settings" data-tab="settings" role="tab" aria-selected="false">
+            Settings
+          </button>
+        </nav>
+        <div class="sidebar-brand">
+          <img class="peach-side" src="assets/peach-cat.gif" alt="" width="88" height="88" />
+        </div>
+      </aside>
+
+      <main class="content">
+        <section id="panel-account" class="panel glass active" role="tabpanel">
+          <header class="panel-intro">
+            <h1 class="panel-title">Login</h1>
+            <p class="panel-sub">Import Steam · license status</p>
+          </header>
+
+          <div class="box-grid">
+            <div class="box">
+              <h2 class="box-title">Import Steam token</h2>
+              <label class="field">
+                <span>Token</span>
+                <textarea
+                  id="import-token"
+                  rows="2"
+                  spellcheck="false"
+                  placeholder="username----eyJ…"
+                ></textarea>
+              </label>
+              <div class="btn-row">
+                <button type="button" class="btn primary" id="btn-import">Import &amp; login</button>
+                <button type="button" class="btn ghost" id="btn-import-clip" title="From clipboard">
+                  Clipboard
+                </button>
+              </div>
+              <div class="result-card" id="import-result" hidden></div>
+            </div>
+
+            <div class="box">
+              <h2 class="box-title">Account status</h2>
+              <p class="box-sub">License status</p>
+              <label class="field">
+                <span>License key</span>
+                <input
+                  type="text"
+                  id="account-key"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="Paste your key"
+                />
+              </label>
+              <button type="button" class="btn primary" id="btn-status">Check status</button>
+              <div class="result-card" id="account-result" hidden></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="panel-history" class="panel glass" role="tabpanel" hidden>
+          <header class="panel-head">
+            <div class="panel-intro">
+              <h1 class="panel-title">History</h1>
+              <p class="panel-sub">Steam accounts</p>
+            </div>
+            <div class="btn-row">
+              <button type="button" class="btn ghost" id="btn-hist-refresh">Refresh</button>
+              <button type="button" class="btn ghost" id="btn-hist-export" title="Copy username----token lines for Import">
+                Export all
+              </button>
+              <button type="button" class="btn danger" id="btn-hist-clear">Clear all</button>
+            </div>
+          </header>
+
+          <div id="history-list" class="history-list"></div>
+          <p id="history-empty" class="empty-hint" hidden>No accounts yet — import one on Login.</p>
+        </section>
+
+        <section id="panel-redeem" class="panel glass" role="tabpanel" hidden>
+          <header class="panel-intro">
+            <h1 class="panel-title">Redeem</h1>
+            <p class="panel-sub">Redeem a license key</p>
+          </header>
+
+          <div class="box box-solo">
+            <label class="field">
+              <span>License key</span>
+              <input
+                type="text"
+                id="redeem-key"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Paste your key"
+              />
+            </label>
+            <p class="field-hint">Paste the license key from your order to receive an account.</p>
+            <button type="button" class="btn primary" id="btn-redeem">Redeem</button>
+            <div class="result-card" id="redeem-result" hidden></div>
+          </div>
+        </section>
+
+        <section id="panel-replacement" class="panel glass" role="tabpanel" hidden>
+          <header class="panel-intro">
+            <h1 class="panel-title">Replacement</h1>
+            <p class="panel-sub">Request a warranty replacement</p>
+          </header>
+
+          <div class="box box-solo">
+            <label class="field">
+              <span>License key</span>
+              <input
+                type="text"
+                id="replacement-key"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Paste your key"
+              />
+            </label>
+            <label class="field">
+              <span>Reason <em>(required, max 500)</em></span>
+              <textarea
+                id="replacement-reason"
+                maxlength="500"
+                rows="3"
+                placeholder="Why do you need a replacement?"
+              ></textarea>
+            </label>
+            <button type="button" class="btn primary" id="btn-replacement">Request replacement</button>
+            <div class="result-card" id="replacement-result" hidden></div>
+          </div>
+        </section>
+
+        <section id="panel-settings" class="panel glass" role="tabpanel" hidden>
+          <header class="panel-intro">
+            <h1 class="panel-title">Settings</h1>
+            <p class="panel-sub">Privileges · quit</p>
+          </header>
+
+          <div class="box box-solo" id="settings-admin-box">
+            <h2 class="box-title">Administrator</h2>
+            <p class="box-sub" id="settings-admin-hint">
+              Needed if Steam won't close (Access denied).
+            </p>
+            <button type="button" class="btn secondary" id="btn-run-as-admin">
+              Run as administrator
+            </button>
+            <p class="settings-status" id="settings-admin-status" hidden></p>
+          </div>
+
+          <div class="box box-solo" id="settings-quit-box">
+            <h2 class="box-title">Quit</h2>
+            <p class="box-sub">Titlebar ✕ and this button fully exit the app. ─ minimizes.</p>
+            <button type="button" class="btn danger" id="btn-quit-app">Quit app</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toasts" class="toasts" aria-live="polite"></div>
+
+    <div id="app-modal" class="app-modal" hidden>
+      <div class="app-modal-backdrop" data-modal-dismiss></div>
+      <div class="app-modal-card glass" role="dialog" aria-modal="true" aria-labelledby="app-modal-title">
+        <h2 id="app-modal-title" class="app-modal-title">Confirm</h2>
+        <p id="app-modal-body" class="app-modal-body"></p>
+        <div class="app-modal-actions">
+          <button type="button" class="btn ghost" id="app-modal-cancel">Cancel</button>
+          <button type="button" class="btn primary" id="app-modal-confirm">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="main.js"></script>
+  </body>
+</html>
