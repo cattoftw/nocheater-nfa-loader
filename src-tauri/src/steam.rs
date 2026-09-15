@@ -151,7 +151,7 @@ pub fn handle_batch_import(content: &str) -> Result<String, String> {
 
     if let Some((username, steamid)) = last {
         apply_active_account(&username, &steamid, steam_path)?;
-        relaunch_steam(&steam_path_string)?;
+        relaunch_steam(&steam_path_string, &steamid)?;
     }
 
     let mut msg = format!("Imported {imported} accounts. Starting Steam.");
@@ -181,7 +181,7 @@ fn import_single_account(content: &str) -> Result<String, String> {
     config::write_account_files(&parsed.username, &parsed.token, &steamid, steam_path)?;
     tokens::save_record(&steamid, &parsed.username, &parsed.username, &parsed.token);
     apply_active_account(&parsed.username, &steamid, steam_path)?;
-    relaunch_steam(&steam_path_string)?;
+    relaunch_steam(&steam_path_string, &steamid)?;
 
     Ok(format!("Imported {}. Starting Steam.", parsed.username))
 }
@@ -201,7 +201,7 @@ pub fn handle_login_account(account: &SteamAccount) -> Result<String, String> {
     }
 
     apply_active_account(&account.account_name, &account.steamid, steam_path)?;
-    relaunch_steam(&steam_path_string)?;
+    relaunch_steam(&steam_path_string, &account.steamid)?;
 
     Ok(format!(
         "Signed in as {}. Starting Steam.",
@@ -244,13 +244,27 @@ pub fn handle_delete_account(account: &SteamAccount) -> Result<String, String> {
 fn apply_active_account(username: &str, steamid: &str, steam_path: &Path) -> Result<(), String> {
     let loginusers_vdf = steam_path.join("config").join("loginusers.vdf");
     config::update_loginusers_vdf(&loginusers_vdf, username, steamid)?;
-    // Silent default: Invisible persona in localconfig before Steam starts.
+    // Always Invisible before Steam starts.
     config::apply_localconfig_invisible(steamid, steam_path)?;
     process::write_autologin_user(username)
 }
 
-fn relaunch_steam(steam_path: &str) -> Result<(), String> {
+fn relaunch_steam(steam_path: &str, steamid: &str) -> Result<(), String> {
     std::thread::sleep(Duration::from_millis(400));
     process::launch_steam(steam_path)?;
+    // Steam often rewrites localconfig as Online on first login; keep stamping Invisible.
+    keep_invisible_while_steam_starts(steam_path, steamid);
     Ok(())
+}
+
+fn keep_invisible_while_steam_starts(steam_path: &str, steamid: &str) {
+    let steam_path = steam_path.to_string();
+    let steamid = steamid.to_string();
+    std::thread::spawn(move || {
+        let path = Path::new(&steam_path);
+        for _ in 0..40 {
+            std::thread::sleep(Duration::from_millis(500));
+            let _ = config::apply_localconfig_invisible(&steamid, path);
+        }
+    });
 }

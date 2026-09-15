@@ -525,6 +525,7 @@ fn create_new_local_vdf(crc: &str, encrypted: &str) -> String {
 }
 
 /// Write Invisible persona (EPersonaState = 7) into localconfig before Steam starts.
+/// Safe to call repeatedly — Steam may recreate this file as Online on first login.
 pub(crate) fn apply_localconfig_invisible(
     steamid64: &str,
     steam_path: &Path,
@@ -533,13 +534,14 @@ pub(crate) fn apply_localconfig_invisible(
     let path = localconfig_path(steam_path, &steamid3);
     // Invisible = 7; stay signed into Friends while hidden.
     let persona_state: u8 = 7;
-    let sign_into_friends = "1";
 
     let mut content = fs::read_to_string(&path)
         .unwrap_or_else(|_| minimal_localconfig_template(&steamid3, persona_state));
 
     content = patch_persona_prefs(&content, &steamid3, persona_state);
-    content = replace_vdf_key_line(&content, "SignIntoFriends", sign_into_friends);
+    content = force_e_persona_state(&content, persona_state);
+    content = upsert_vdf_in_block(&content, "friends", "PersonaStateDesired", &persona_state.to_string());
+    content = upsert_vdf_in_block(&content, "friends", "SignIntoFriends", "1");
 
     let parent = path
         .parent()
@@ -556,6 +558,7 @@ fn minimal_localconfig_template(steamid3: &str, persona_state: u8) -> String {
 	"friends"
 	{{
 		"SignIntoFriends"		"1"
+		"PersonaStateDesired"		"{persona_state}"
 	}}
 	"WebStorage"
 	{{
@@ -566,23 +569,47 @@ fn minimal_localconfig_template(steamid3: &str, persona_state: u8) -> String {
     )
 }
 
+/// Force every ePersonaState digit in the file to Invisible (preserves other JSON fields).
+fn force_e_persona_state(content: &str, state: u8) -> String {
+    let marker = "ePersonaState\":";
+    let mut out = String::with_capacity(content.len());
+    let mut rest = content;
+    while let Some(idx) = rest.find(marker) {
+        out.push_str(&rest[..idx]);
+        out.push_str(marker);
+        let after = &rest[idx + marker.len()..];
+        let digits = after.chars().take_while(|c| c.is_ascii_digit()).count();
+        out.push_str(&state.to_string());
+        rest = &after[digits..];
+    }
+    out.push_str(rest);
+    out
+}
+
+fn upsert_vdf_in_block(content: &str, block: &str, key: &str, value: &str) -> String {
+    let exists = content.lines().any(|line| {
+        let fields = quoted_fields(line);
+        fields.len() >= 2 && fields[0] == key
+    });
+    if exists {
+        return replace_vdf_key_line(content, key, value);
+    }
+    if let Some(pos) = find_vdf_key_block_body_start(content, block) {
+        let mut patched = content.to_string();
+        patched.insert_str(pos, &format!("\t\t\"{key}\"\t\t\"{value}\"\n"));
+        return patched;
+    }
+    replace_vdf_key_line(content, key, value)
+}
+
 fn patch_persona_prefs(content: &str, steamid3: &str, persona_state: u8) -> String {
     let key = format!("FriendStoreLocalPrefs_{steamid3}");
     let new_json =
         format!(r#"{{\"ePersonaState\":{persona_state},\"strNonFriendsAllowedToMsg\":\"\"}}"#);
 
     if content.contains(&key) {
-        let mut out = String::new();
-        for line in content.lines() {
-            if line.contains(&key) {
-                let indent = line_indent(line);
-                out.push_str(&format!("{indent}\"{key}\"\t\t\"{new_json}\"\n"));
-            } else {
-                out.push_str(line);
-                out.push('\n');
-            }
-        }
-        out
+        // Prefer updating ePersonaState in place so other FriendStore prefs survive.
+        force_e_persona_state(content, persona_state)
     } else if let Some(insert_pos) = find_vdf_key_block_body_start(content, "WebStorage") {
         let entry = format!("\t\t\"{key}\"\t\t\"{new_json}\"\n");
         let mut patched = content.to_string();
