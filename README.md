@@ -37,6 +37,7 @@ npm run tauri build
 - Top right: **Market** → nocheater.store, **Redeem** → sitnn.dog, **Discord** → nocheater.cc, **Close Steam**.
 - Steam is **not** auto-started when the loader opens — only on Import & Login / Sign in.
 - Import / Sign in write **Invisible** persona into `localconfig.vdf` before Steam launches.
+- Customer-facing copy treats the brand as an **official seller** (no reseller wording in toasts/results).
 
 ## Single instance
 
@@ -47,12 +48,12 @@ Windows named mutex `Local\nocheater.desktop.single-instance`. A second launch f
 | Tab | Call |
 |-----|------|
 | Account status | `GET /api/status?key=` |
-| Redeem | `POST /api/redeem` `{ "key" }` → may include `account` (`username----token`) |
-| Replacement | `POST /api/replacement` `{ "key", "reason" }` |
+| Redeem | Resolve via `POST /api/resolve-license` `{ "license" }`, else `POST /api/redeem` `{ "key" }` (server polls delivery; client timeout 65s) → may include `account` |
+| Replacement | `POST /api/resolve-license` → `POST /api/warranty-check` → `POST /api/warranty-claim` → poll `POST /api/warranty-status` |
 
 Optional header `X-App-Key` from `%APPDATA%\nocheater\config.json` (`appKey`). Empty = omit. After the sitnn.dog APP_KEY policy update, empty `appKey` works unless the server sets `APP_KEY_REQUIRED=true`. Wrong `appKey` still gets **Unauthorized**.
 
-Timeout 20s. On network/site-down failures the app toasts **Site not ready** and opens nocheater.store. If the delivery provider rejects the site's API key, the app shows a delivery-API message (not Site not ready).
+Status timeout 20s; redeem up to 65s; replacement up to 90s. On network/site-down failures the app toasts **Site not ready** and opens sitnn.dog.
 
 ## Config
 

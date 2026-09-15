@@ -97,13 +97,32 @@ function setResult(el, text, ok) {
   el.classList.toggle("err", ok === false);
 }
 
+/** Remap reseller-flavored API/UX strings to official-seller wording. */
+function sanitizeSellerFacingText(text) {
+  if (text == null) return text;
+  let s = String(text);
+  if (/unauthorized\s+resellers?/i.test(s)) {
+    return "This key is not valid here. Use a key from the official seller.";
+  }
+  s = s.replace(/\bnfa\.resync\.club\b/gi, "nocheater");
+  s = s.replace(/\bresync(?:\.club)?\b/gi, "nocheater");
+  s = s.replace(/\bdelivery\s+providers?\b/gi, "service");
+  s = s.replace(/\bresellers\b/gi, "official sellers");
+  s = s.replace(/\breseller\b/gi, "official seller");
+  s = s.replace(/\breselling\b/gi, "selling");
+  s = s.replace(/\bresell\b/gi, "sell");
+  return s;
+}
+
 function formatOkBody(body) {
   if (!body || typeof body !== "object") return "Done";
   const parts = [];
-  if (body.message) parts.push(String(body.message));
+  if (body.message) parts.push(sanitizeSellerFacingText(String(body.message)));
   if (body.status) parts.push(`Status: ${body.status}`);
   if (body.productName || body.product) {
-    parts.push(`Product: ${body.productName || body.product}`);
+    parts.push(
+      `Product: ${sanitizeSellerFacingText(body.productName || body.product)}`
+    );
   }
   if (body.ticket) parts.push(`Ticket: ${body.ticket}`);
   if (body.redeemed_at) parts.push(`Redeemed: ${body.redeemed_at}`);
@@ -136,7 +155,7 @@ async function handleOutcome(outcome, resultEl, { openOnDown } = {}) {
   if (body.ok === true) {
     const msg = formatOkBody(body);
     setResult(resultEl, msg, true);
-    toast(body.message || "Success", "ok");
+    toast(sanitizeSellerFacingText(body.message || "Success"), "ok");
     return body;
   }
 
@@ -148,9 +167,10 @@ async function handleOutcome(outcome, resultEl, { openOnDown } = {}) {
   if (err === "Unauthorized" && outcome.http_status === 401) {
     err = "Unauthorized (check appKey / APP_KEY)";
   } else if (/delivery service unauthorized/i.test(err)) {
-    err = "Site delivery API key invalid — fix the provider API key on the redeem site";
+    err = "Delivery service unavailable — try again later";
   }
 
+  err = sanitizeSellerFacingText(err);
   setResult(resultEl, err, false);
   toast(err, "err");
   return null;
@@ -559,11 +579,19 @@ async function boot() {
     try {
       const outcome = await invoke("request_replacement", { key, reason });
       const body = await handleOutcome(outcome, $("#replacement-result"), {
-        openOnDown: "https://nocheater.store",
+        openOnDown: "https://sitnn.dog",
       });
       if (body) {
         clearLicenseKeys();
         $("#replacement-reason").value = "";
+        if (body.account) {
+          const line = String(body.account);
+          $("#import-token").value = line;
+          try {
+            await invoke("save_last_token", { token: line });
+          } catch (_) {}
+          toast("Replacement delivered — import on Login", "ok");
+        }
       }
     } catch (e) {
       toast(String(e), "err");
